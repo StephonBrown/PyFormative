@@ -9,6 +9,6 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        PyFormative=main:pyform
+        PyFormative=main:initial
     ''',
 )
