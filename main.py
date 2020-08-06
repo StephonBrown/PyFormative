@@ -1,10 +1,38 @@
 import click
+from yattag import Doc, indent
+
+#TODO 
+    #-[ ] Bootstrap integration
+    #-[ ] html document export
+    #-[ ] plugin support
 class PyFormObject(object):
-    def __init__(self, inputAmount=1, inputTypes=[]):
+    def __init__(self, inputAmount=1, inputTypes=[], includeBootstrapClasses=False):
         super().__init__()
         self.inputAmount = inputAmount
         self.inputTypes = inputTypes
+        self.includeBootstrapClasses = includeBootstrapClasses
 
+    def GenerateForm(self):
+        doc, tag, text, line = Doc().ttl()
+        count = 1
+        doc.asis('<!DOCTYPE html>')
+        with tag('html'):
+            with tag('body'): 
+                line('h1', 'PyFormative Form')
+                for input in self.inputTypes:
+                    with tag('form', action = ""):
+                        if(input in ["text", "email","tel","number","password", "date","file"]):
+                            with tag('div', klass="form-control"):
+                                line('label', "input%d"% count)
+                                doc.input(name="input%d"% count ,type=str(input))
+                        count = count + 1
+                doc.stag('input', type = 'submit', value = 'Send my message')
+        return indent(
+                    doc.getvalue(),
+                    indentation = '     ',
+                    newline = '\r\n',
+                    indent_text = True
+                )
    
 @click.command()
 @click.option('--amount', prompt="Please enter the amount of inputs you would like", type=int, required=True, default=1)
@@ -23,6 +51,5 @@ def initial(context, amount):
 
 
     repo = PyFormObject(amount,inputTypes)
-    click.echo(repo.inputTypes)
-    click.echo(repo.inputAmount)
+    click.echo(repo.GenerateForm())
 
