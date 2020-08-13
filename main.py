@@ -1,9 +1,11 @@
 import click
+import os
+import sys
 from yattag import Doc, indent
 
 #TODO 
     #-[ ] Bootstrap integration
-    #-[ ] html document export
+    #-[X] Html document export
     #-[ ] plugin support
 class PyFormObject(object):
     def __init__(self, inputAmount=1, inputTypes=[], includeBootstrapClasses=False):
@@ -19,21 +21,46 @@ class PyFormObject(object):
         with tag('html'):
             with tag('body'): 
                 line('h1', 'PyFormative Form')
-                for input in self.inputTypes:
-                    with tag('form', action = ""):
+                with tag('form', action = ""):
+                    for input in self.inputTypes:
                         if(input in ["text", "email","tel","number","password", "date","file"]):
                             with tag('div', klass="form-control"):
                                 line('label', "input%d"% count)
                                 doc.input(name="input%d"% count ,type=str(input))
-                        count = count + 1
-                doc.stag('input', type = 'submit', value = 'Send my message')
+                            count = count + 1
+                    doc.stag('input', type = 'submit', value = 'Send my message')
         return indent(
                     doc.getvalue(),
                     indentation = '     ',
                     newline = '\r\n',
                     indent_text = True
                 )
-   
+        
+    def ExportFile(self, filePath):
+        if os.path.isdir(filePath):
+            try:
+                f = open("%s/home.html" % filePath, "w+")
+                f.write(self.GenerateForm())
+                f.close()
+            except OSError:
+                click.echo("Invalid path")
+        elif os.path.isfile(filePath):
+            try:
+                filePath.replace(".html","")
+                f = open("%s.html"% filePath, "w+")
+                f.write(self.GenerateForm())
+                f.close()
+            except OSError:
+                click.echo("Invalid file")
+        else:
+            try:
+                filePath.replace(".html","")
+                f = open("%s.html"% filePath, "w+")
+                f.write(self.GenerateForm())
+                f.close()
+            except OSError:
+                click.echo("Invalid file")
+
 @click.command()
 @click.option('--amount', prompt="Please enter the amount of inputs you would like", type=int, required=True, default=1)
 @click.pass_context
@@ -50,6 +77,18 @@ def initial(context, amount):
             valid = all([x in ["text", "email","tel","number","password","date", "file"] for x in inputTypes ])
 
 
-    repo = PyFormObject(amount,inputTypes)
-    click.echo(repo.GenerateForm())
+    repo = PyFormObject(amount, inputTypes, False)
+    exportFile = click.prompt("Would you like to export the file?", type=str)
+
+    if exportFile in ["yes", "y","Yes","YES"]:   
+        filePath = click.prompt("Please enter the file name you would like to export", type=click.Path(dir_okay=True, file_okay=True))
+        repo.ExportFile(filePath)
+        click.echo(repo.GenerateForm())
+        click.echo('Goodbye!')
+    else:
+        click.echo(repo.GenerateForm())
+        click.echo('Goodbye!')
+
+if getattr(sys, 'frozen', False):
+    initial(sys.argv[1:])
 

@@ -4,3 +4,5 @@
 /PyTest
 /Pipfile
 /Pipfile.lock
+/dist
+/build
